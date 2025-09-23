@@ -1,0 +1,6 @@
+CREATE TABLE urls (
+    id SERIAL PRIMARY KEY,
+    long_url TEXT NOT NULL,
+    short_code VARCHAR(10) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+)
