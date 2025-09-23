@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Travisaurus-Rex/snipr/internal/db"
+
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 )
@@ -14,6 +16,13 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using system env variables")
 	}
+
+	dsn := "postgres://username:password@localhost:5432/snipr?sslmode=disable"
+	database, err := db.Connect(dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer database.Close()
 
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
