@@ -7,4 +7,4 @@ CREATE TABLE analytics.clicks (
     referrer TEXT,
     user_agent TEXT,
     ip_address INET
-)
+);

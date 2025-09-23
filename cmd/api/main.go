@@ -17,12 +17,8 @@ func main() {
 		log.Println("No .env file found, using system env variables")
 	}
 
-	dsn := "postgres://username:password@localhost:5432/snipr?sslmode=disable"
-	database, err := db.Connect(dsn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer database.Close()
+	db.Connect()
+	defer db.Pool.Close()
 
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
