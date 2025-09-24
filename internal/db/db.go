@@ -5,12 +5,20 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 var Pool *pgxpool.Pool
+
+type URL struct {
+	ID        int
+	ShortCode string
+	LongURL   string
+	CreatedAt time.Time
+}
 
 func Connect() {
 	user := os.Getenv("DB_USER")
@@ -29,4 +37,22 @@ func Connect() {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
 	fmt.Println("Connected to postgres")
+}
+
+func InsertURL(shortCode string, longURL string) (*URL, error) {
+	query := `
+		INSERT INTO urls (short_code, long_url)
+		VALUES ($1, $2)
+		RETURNING id, short_code, long_url, created_at;
+	`
+
+	row := Pool.QueryRow(context.TODO(), query, shortCode, longURL)
+
+	var u URL
+	err := row.Scan(&u.ID, &u.ShortCode, &u.LongURL, &u.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &u, nil
 }
