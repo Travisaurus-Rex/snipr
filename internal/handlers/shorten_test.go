@@ -13,16 +13,10 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	// Load .env first
 	godotenv.Load()
-
-	// Connect to DB
 	db.Connect()
-
-	// Run tests
 	code := m.Run()
 
-	// Close DB pool
 	if db.Pool != nil {
 		db.Pool.Close()
 	}
