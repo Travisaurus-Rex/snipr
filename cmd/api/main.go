@@ -47,6 +47,27 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		shortCode := r.URL.Path[1:]
+		if shortCode == "" {
+			http.Error(w, "short code not provided", http.StatusBadRequest)
+			return
+		}
+
+		url, err := db.GetURLByCode(shortCode)
+		if err != nil {
+			if err.Error() == "no URL found for that short code" {
+				http.NotFound(w, r)
+				return
+			}
+
+			http.Error(w, "server error", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, url.LongURL, http.StatusOK)
+	})
+
 	port := getenv("APP_PORT", "8080")
 	addr := fmt.Sprintf(":%s", port)
 	log.Printf("starting server on %s", addr)
