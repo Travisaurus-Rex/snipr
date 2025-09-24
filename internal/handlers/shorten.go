@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -29,5 +29,14 @@ func Shorten(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, `{"id":%d,"short_code":"%s","long_url":"%s"}`, url.ID, url.ShortCode, url.LongURL)
+	res := map[string]interface{}{
+		"id":         url.ID,
+		"short_code": url.ShortCode,
+		"long_url":   url.LongURL,
+		"created_at": url.CreatedAt,
+	}
+
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		log.Printf("json encoding error: %v", err)
+	}
 }
