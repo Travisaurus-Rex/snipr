@@ -4,7 +4,7 @@ import "testing"
 
 func TestGenerateCode(t *testing.T) {
 	length := 8
-	code := GenerateCode(length)
+	code := GenerateCode()
 
 	if len(code) != length {
 		t.Errorf("expected code length %d, but got %d", length, len(code))
