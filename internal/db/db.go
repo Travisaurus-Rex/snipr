@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -39,20 +41,48 @@ func Connect() {
 	fmt.Println("Connected to postgres")
 }
 
-func InsertURL(shortCode string, longURL string) (*URL, error) {
+func InsertURL(shortCode string, longURL string) (URL, error) {
+	var u URL
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	query := `
 		INSERT INTO urls (short_code, long_url)
 		VALUES ($1, $2)
 		RETURNING id, short_code, long_url, created_at;
 	`
 
-	row := Pool.QueryRow(context.TODO(), query, shortCode, longURL)
-
-	var u URL
+	row := Pool.QueryRow(ctx, query, shortCode, longURL)
 	err := row.Scan(&u.ID, &u.ShortCode, &u.LongURL, &u.CreatedAt)
 	if err != nil {
-		return nil, err
+		return u, err
 	}
 
-	return &u, nil
+	return u, nil
+}
+
+func GetURLByCode(shortCode string) (URL, error) {
+	var u URL
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	query := `
+		SELECT id, short_code, long_url, created_at
+		FROM urls,
+		WHERE short_code = $1
+	`
+
+	row := Pool.QueryRow(ctx, query, shortCode)
+
+	err := row.Scan(&u.ID, &u.ShortCode, &u.LongURL, &u.CreatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return u, errors.New("no URL found for that short code")
+		}
+		return u, err
+	}
+
+	return u, nil
 }
