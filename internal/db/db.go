@@ -30,7 +30,7 @@ func Connect() {
 	name := os.Getenv("DB_NAME")
 
 	connString := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s",
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		user, password, host, port, name,
 	)
 	var err error
@@ -43,6 +43,10 @@ func Connect() {
 
 func InsertURL(shortCode string, longURL string) (URL, error) {
 	var u URL
+
+	if Pool == nil {
+		return u, errors.New("database connection not available")
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -65,12 +69,16 @@ func InsertURL(shortCode string, longURL string) (URL, error) {
 func GetURLByCode(shortCode string) (URL, error) {
 	var u URL
 
+	if Pool == nil {
+		return u, errors.New("database connection not available")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	query := `
 		SELECT id, short_code, long_url, created_at
-		FROM urls,
+		FROM urls
 		WHERE short_code = $1
 	`
 
